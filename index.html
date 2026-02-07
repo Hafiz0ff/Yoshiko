@@ -9,6 +9,12 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- ПОДКЛЮЧАЕМ ФАЙЛЫ МЕНЮ -->
+    <script src="menu_japan.js"></script>
+    <script src="menu_hot.js"></script>
+    <script src="menu_extras.js"></script>
+
     <style>
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -18,9 +24,9 @@
             color: var(--tg-theme-text-color, #000000);
             -webkit-tap-highlight-color: transparent;
         }
-        .item-card {
-            background-color: var(--tg-theme-secondary-bg-color, #ffffff);
-        }
+        /* Анимация появления */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
     </style>
 </head>
 <body>
@@ -35,202 +41,46 @@
             Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
             Minus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>,
             Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
-            Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+            Phone: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
+            Clock: () => <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         };
 
-        // --- ГЕНЕРАТОР ЗАГЛУШЕК (ЕСЛИ НЕТ ФОТО) ---
-        // Генерирует ссылку на картинку с названием категории
         const getPlaceholder = (category, name) => {
-            const colors = {
-                sets: '1a1a1a', rolls: 'e85d04', pizza: 'd00000', street: 'ffb703', 
-                wok: '2a9d8f', soup: '457b9d', poke: '8338ec', yakitori: '9d0208',
-                desserts: 'fb8500', drinks: '0077b6'
-            };
+            const colors = { sets: '1a1a1a', rolls: 'e85d04', pizza: 'd00000', street: 'ffb703', wok: '2a9d8f' };
             const bg = colors[category] || '333';
-            // Используем сервис placehold.co для генерации картинок на лету
             return `https://placehold.co/400x300/${bg}/ffffff?text=${encodeURIComponent(name.split(' ')[0])}`;
         };
 
-        // --- БАЗА ДАННЫХ МЕНЮ (ВСЕ КАТЕГОРИИ) ---
         const MENU_DATA = {
-            sets: {
-                title: "Сеты",
-                items: [
-                    { id: 'set-newyork', name: 'Сет Нью-Йорк', weight: '1320 гр', count: '48 шт', price: 2400, description: 'Роллы: Каприз, Шеф, Дунай, Жемчужина, Саппоро, Майами', image: '' },
-                    { id: 'set-fuji', name: 'Сет Фуджи', weight: '900 гр', count: '32 шт', price: 1350, description: 'Роллы: Йоджи маки, Белоснежка, Чикаго, Ролл с креветкой', image: '' },
-                    { id: 'set-oslo', name: 'Сет Осло', weight: '1740 гр', count: '56 шт', price: 3100, description: 'Черный самурай, Спай эби, Шик маки, Золотой, Сой бин маки', image: '' },
-                    { id: 'set-furshet', name: 'Сет Фуршет', weight: '2200 гр', count: '80 шт', price: 4100, description: 'Шанхай, Корона, Белоснежка, Калифорния с кунжутом, Де люкс, Аляска', image: '' },
-                    { id: 'set-vip', name: 'Сет ВИП', weight: '850 гр', count: '27 шт', price: 1790, description: 'Роллы: Мадрид, Тар-тар маки, Бангкок. Суши: Угорь, Лосось', image: '' },
-                    { id: 'set-texas', name: 'Сет Техас', weight: '1300 гр', count: '40 шт', price: 2050, description: 'Темпура: маки, императорский. Роллы: сидней, кайсен, черный самурай', image: '' },
-                    { id: 'set-nagano', name: 'Сет Нагано', weight: '1000 гр', count: '32 шт', price: 1700, description: 'Сет для минималистов с аппетитом. Четыре ролла', image: '' },
-                    { id: 'set-vegas', name: 'Сет Вегас', weight: '1200 гр', count: '32 шт', price: 1610, description: 'Темпура: Королева, Гейзер, Магуро джимаг, Канзас', image: '' }
-                ]
-            },
-            rolls: {
-                title: "Роллы",
-                items: [
-                    { id: 'roll-philadelphia', name: 'Филадельфия', weight: '200 гр', price: 480, description: 'Лосось, сливочный сыр', image: '' },
-                    { id: 'roll-california', name: 'Калифорния', weight: '200 гр', price: 430, description: 'Креветка, авокадо, тобико, японский майонез', image: '' },
-                    { id: 'roll-canada', name: 'Канада', weight: '200 гр', price: 430, description: 'Угорь, лосось копчёный, авокадо, филадельфия, кунжут', image: '' },
-                    { id: 'roll-dragon', name: 'Золотой дракон', weight: '230 гр', price: 660, description: 'Королевская креветка, угорь, паприка, филадельфия', image: '' },
-                    { id: 'roll-moscow', name: 'Москва', weight: '210 гр', price: 430, description: 'Копченый лосось, филадельфия, огурец, икра', image: '' },
-                    { id: 'roll-black-samurai', name: 'Черный самурай', weight: '200 гр', price: 430, description: 'Филадельфия, тобико чёрное, угорь, креветка, огурец', image: '' },
-                    { id: 'roll-emperor', name: 'Императорский', weight: '220 гр', price: 430, description: 'Креветка, лосось, икра, японский майонез, кляр', image: '' },
-                    { id: 'roll-madrid', name: 'Мадрид', weight: '220 гр', price: 660, description: 'Угорь копченый, лосось, сыр филадельфия, авокадо', image: '' }
-                ]
-            },
-            sushirrito: {
-                title: "Суширитто",
-                items: [
-                    { id: 'sushirrito-flow', name: 'РоллФлоу', weight: '330 гр', price: 550, description: 'Когда всё идёт само: работа спорится, настроение на пике', image: '' },
-                    { id: 'sushirrito-caesar', name: 'Цезарь в кляре', weight: '330 гр', price: 510, description: 'Сытный микс любимого салата и японского формата', image: '' },
-                    { id: 'sushirrito-satori', name: 'Суширитто сатори', weight: '310 гр', price: 570, description: 'Философы веками спорят о смысле жизни, а можно просто съесть это', image: '' }
-                ]
-            },
-            street: {
-                title: "СтритФуд",
-                items: [
-                    { id: 'burger-bbq', name: 'Бургер Барбекю', weight: '285 гр', price: 410, description: 'Булочка с кунжутом, мраморная говядина, вьетнамский лук', image: '' },
-                    { id: 'burger-black-deluxe', name: 'Блэк бургер Делюкс', weight: '420 гр', price: 500, description: 'Черная булочка, мраморная говядина, салат Айсберг', image: '' },
-                    { id: 'taco-beef', name: 'Тако Биф спайси', weight: '325 гр', price: 420, description: 'Тортилья, говяжий фарш, помидор, перец болгарский', image: '' },
-                    { id: 'quesadilla-cheese', name: 'Кесадилья Чиз Тайм', weight: '190 гр', price: 360, description: 'Тортилья, моцарелла, сметана, соус сливочно-чесночный', image: '' },
-                    { id: 'burrito-mexican', name: 'Мексиканский буррито', weight: '420 гр', price: 430, description: 'Пшеничная тортилья, фарш из мраморной говядины, картофель фри', image: '' },
-                    { id: 'burger-chef', name: 'Шеф бургер', weight: '315 гр', price: 450, description: 'Булочка с кунжутом, котлета из мраморной говядины, салат айсберг', image: '' }
-                ]
-            },
-            pizza: {
-                title: "Пицца",
-                items: [
-                    { id: 'pizza-peperoni', name: 'Пепперони', price: 420, description: 'Пицца-соус, сыр Моцарелла, пепперони, шампиньоны', image: '' },
-                    { id: 'pizza-margarita', name: 'Маргарита', price: 450, description: 'Пицца-соус, сыр Моцарелла, помидоры', image: '' },
-                    { id: 'pizza-tom-yam', name: 'Том Ям', price: 690, description: 'Встреча итальянской классики с азиатской страстью', image: '' },
-                    { id: 'pizza-4-cheese', name: '4 Сыра', price: 420, description: 'Моцарелла, дорблю, мимолет, Пармезан', image: '' },
-                    { id: 'pizza-chicken', name: 'Куриная', price: 430, description: 'Сливочный соус, сыр моцарелла, куриное филе', image: '' },
-                    { id: 'pizza-caesar', name: 'Цезарь', price: 410, description: 'Соус цезарь, сыр Моцарелла, куриная грудка, салат айсберг, помидоры', image: '' },
-                    { id: 'pizza-meat', name: 'Мясная', price: 520, description: 'Пицца-соус, Моцарелла, говядина, помидоры, филе курицы, ветчина', image: '' }
-                ]
-            },
-            wok: {
-                title: "WOK",
-                items: [
-                    { id: 'wok-udon-chicken', name: 'Удон с курицей', price: 380, description: 'Лапша удон, куриная грудка, грибы шиитаке, перец', image: '' },
-                    { id: 'wok-soba-seafood', name: 'Соба с морепродуктами', price: 380, description: 'Гречневая лапша, кальмар, мидии, осьминог', image: '' },
-                    { id: 'wok-tom-yam-pasta', name: 'Паста Том Ям с курицей', price: 410, description: 'Когда жизнь кажется слишком пресной, закажи эту пасту', image: '' },
-                    { id: 'wok-harusame-chicken', name: 'Харусаме с курицей', price: 420, description: 'Рисовая лапша, овощи, куриная грудка', image: '' },
-                    { id: 'wok-teppan-beef', name: 'Говядина на жаровне', price: 350, description: 'Жаровня - это когда огонь делает всю работу, говядина шипит', image: '' }
-                ]
-            },
-            poke: {
-                title: "Поке",
-                items: [
-                    { id: 'poke-salmon', name: 'Поке с лососем', weight: '350 гр', price: 650, description: 'Гавайцы - умные люди. Зачем вилки и ножи?', image: '' },
-                    { id: 'poke-shrimp', name: 'Поке с креветками', weight: '350 гр', price: 650, description: 'Креветки - продукт тонкий, легко испортить', image: '' },
-                    { id: 'poke-tuna', name: 'Поке с тунцом', weight: '350 гр', price: 650, description: 'Карибская пристань в полдень, крики чаек, запах соли', image: '' }
-                ]
-            },
-            soup: {
-                title: "Супы",
-                items: [
-                    { id: 'soup-tom-yam', name: 'Суп Том Ям', price: 410, description: 'Это как первое свидание: сначала непонятно, потом остро', image: '' },
-                    { id: 'soup-miso', name: 'Мисо суп', price: 240, description: 'Классика японской кухни. Простой, как дзен-сад', image: '' },
-                    { id: 'soup-cream-mushroom', name: 'Крем суп грибной', price: 270, description: 'Создан для прохладных вечеров', image: '' },
-                    { id: 'soup-salmon', name: 'Суп с лососем', price: 370, description: 'Мисо-суп с характером - здесь главную роль играет лосось', image: '' }
-                ]
-            },
-            yakitori: {
-                title: "Шашлычки",
-                items: [
-                    { id: 'yakitori-chicken', name: 'Шашлычки из курицы', weight: '2 шт', price: 240, description: 'Сочные кусочки в соусе унаги', image: '' },
-                    { id: 'yakitori-salmon', name: 'Шашлычки из семги', weight: '2 шт', price: 330, description: 'Утонченность, бархат ночи, капля волшебства', image: '' },
-                    { id: 'yakitori-hearts', name: 'Куриные сердечки', weight: '2 шт', price: 220, description: 'Шашлычок-Оскар, не меньше! На красной дорожке вкусов', image: '' },
-                    { id: 'yakitori-shrimp', name: 'Шашлычки с креветками', weight: '2 шт', price: 330, description: 'Нежные креветки, пропитанные насыщенным соусом унаги', image: '' }
-                ]
-            },
-            ossetian: {
-                title: "Пироги",
-                items: [
-                    { id: 'pie-meat', name: 'С мясом', weight: '700 гр', price: 750, description: 'Говяжий фарш, лук, чили перец, чеснок', image: '' },
-                    { id: 'pie-cheese', name: 'С сыром', weight: '700 гр', price: 640, description: 'Сыр «Осетинский», масло топленое', image: '' },
-                    { id: 'pie-potato', name: 'С картофелем и грибами', weight: '700 гр', price: 580, description: 'Мука в/с, грибы, картофель, сыр', image: '' },
-                    { id: 'pie-chicken', name: 'С курицей и сыром', weight: '700 гр', price: 680, description: 'Сыр «Осетинский», курица, специи, масло топленое', image: '' }
-                ]
-            },
-            salads: {
-                title: "Салаты",
-                items: [
-                    { id: 'salad-funchoza', name: 'Фунчоза', price: 350, description: 'Рисовая лапша, тигровые креветки, овощи, кунжутное масло', image: '' },
-                    { id: 'salad-avocado', name: 'Салат Авокадо', price: 350, description: 'Авокадо, креветки, овощи, яйцо, зелень, соус', image: '' },
-                    { id: 'salad-chuka', name: 'Чука сарада', price: 220, description: 'Салат чука с ореховым соусом', image: '' },
-                    { id: 'salad-caesar-shrimp', name: 'Цезарь с креветками', price: 340, description: 'Салат айсберг, креветки тигровые, помидор черри, гренки', image: '' }
-                ]
-            },
-            snacks: {
-                title: "Закуски",
-                items: [
-                    { id: 'snack-fries', name: 'Картофель "Фри"', weight: '250 гр', price: 220, description: 'Это блюдо - старый друг, которого ты всегда рад видеть', image: '' },
-                    { id: 'snack-prawns', name: 'Креветки тигровые в панировке', count: '6 шт', price: 350, description: 'Звучит грозно, на вкус - огонь', image: '' },
-                    { id: 'snack-nuggets', name: 'Наггетсы', count: '6 шт', price: 140, description: 'Вкусняшки с перчинкой - хрустящие снаружи', image: '' },
-                    { id: 'snack-cheese-balls', name: 'Сырные шарики', weight: '8 шт', price: 350, description: 'Я сырный, снаружи хрустящий, а внутри - такой мягкий', image: '' }
-                ]
-            },
-             combo: {
-                title: "Комбо",
-                items: [
-                    { id: 'combo-shanghai', name: 'Комбо Шанхай', price: 590, description: 'Вопрос «Что бы поесть?» решается на ура!', image: '' },
-                    { id: 'combo-5-pizzas', name: 'Комбо "5 Пицц"', price: 2350, description: 'Пять разных историй на одном столе', image: '' },
-                    { id: 'combo-nevada', name: 'Комбо Невада', price: 590, description: 'Сытный набор для тех, кто ценит вкус и разнообразие', image: '' },
-                    { id: 'combo-francesco', name: 'Комбо Франческо', price: 590, description: 'Готовься к гастрономическому празднику', image: '' }
-                ]
-            },
-            desserts: {
-                title: "Десерты",
-                items: [
-                    { id: 'cheesecake-classic', name: 'Чизкейк Классик', price: 220, description: 'Нью-йоркский чизкейк - плотный, сливочный', image: '' },
-                    { id: 'roll-victoria', name: 'Сладкий ролл Виктория', price: 340, description: 'Яркий, сочный, немного королевский', image: '' },
-                    { id: 'tiramisu', name: 'Тирамису', price: 220, description: 'Итальянский десерт, «подними меня вверх»', image: '' }
-                ]
-            },
-            drinks: {
-                title: "Напитки",
-                items: [
-                    { id: 'drink-dobry-cola', name: 'Добрый Кола', volume: '1.0 л', price: 190, description: '', image: '' },
-                    { id: 'drink-adrenaline', name: 'Адреналин Раш', volume: '0.5 л', price: 200, description: '', image: '' },
-                    { id: 'drink-orange', name: 'Добрый Апельсин', volume: '1.0 л', price: 210, description: '', image: '' }
-                ]
-            },
-            sauces: {
-                title: "Соусы",
-                items: [
-                    { id: 'sauce-spicy', name: 'Соус спайси', price: 60, description: 'Для тех, кому скучно жить без остринки', image: '' },
-                    { id: 'sauce-wasabi', name: 'Васаби', price: 60, description: 'Жгучий акцент для полной палитры вкуса', image: '' },
-                    { id: 'sauce-ginger', name: 'Имбирь', price: 60, description: 'Розовые лепестки между роллами', image: '' },
-                    { id: 'sauce-soy', name: 'Соевый соус Киккоман', price: 100, description: 'Без него роллы - просто рис с рыбой', image: '' }
-                ]
-            }
+            ...(window.MENU_JAPAN || {}),
+            ...(window.MENU_HOT || {}),
+            ...(window.MENU_EXTRAS || {})
         };
 
         const CATEGORIES = Object.keys(MENU_DATA).map(key => ({
             id: key,
-            label: MENU_DATA[key].title
+            label: MENU_DATA[key]?.title || key
         }));
 
         const App = () => {
-            const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
+            const [activeCategory, setActiveCategory] = useState(CATEGORIES.length > 0 ? CATEGORIES[0].id : '');
             const [cart, setCart] = useState({});
             const [view, setView] = useState('menu');
             const [searchQuery, setSearchQuery] = useState('');
-            const [animation, setAnimation] = useState('');
 
             useEffect(() => {
                 if (window.Telegram?.WebApp) {
                     const tg = window.Telegram.WebApp;
                     tg.ready();
                     tg.expand();
-                    document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#f5f5f5');
-                    document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#ffffff');
-                    document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
-                    document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
-                    document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+                    // Установка цветов
+                    const setVar = (name, val) => document.documentElement.style.setProperty(name, val);
+                    setVar('--tg-theme-bg-color', tg.themeParams.bg_color || '#f5f5f5');
+                    setVar('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#ffffff');
+                    setVar('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
+                    setVar('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
+                    setVar('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
                 }
             }, []);
 
@@ -238,12 +88,8 @@
 
             const handleCheckout = useCallback(() => {
                 if (window.Telegram?.WebApp) {
-                    const tg = window.Telegram.WebApp;
-                    const itemsList = Object.values(cart)
-                        .map(item => `${item.name} x${item.quantity} - ${item.price * item.quantity}₽`)
-                        .join('\n');
-                    const message = `Заказ:\n${itemsList}\nИтого: ${totalAmount} ₽`;
-                    tg.sendData(JSON.stringify({ cart, totalAmount, message }));
+                    const itemsList = Object.values(cart).map(i => `${i.name} x${i.quantity} - ${i.price * i.quantity}₽`).join('\n');
+                    window.Telegram.WebApp.sendData(JSON.stringify({ cart, totalAmount, message: `Заказ:\n${itemsList}\nИтого: ${totalAmount} ₽` }));
                 }
             }, [cart, totalAmount]);
 
@@ -262,32 +108,22 @@
             }, [totalAmount, handleCheckout]);
 
             const handleAddToCart = (item) => {
-                setCart(prev => {
-                    const currentQty = prev[item.id]?.quantity || 0;
-                    return { ...prev, [item.id]: { ...item, quantity: currentQty + 1 } };
-                });
-                if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+                setCart(prev => ({ ...prev, [item.id]: { ...item, quantity: (prev[item.id]?.quantity || 0) + 1 } }));
+                window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('medium');
             };
 
             const handleRemoveFromCart = (item) => {
                 setCart(prev => {
-                    const currentQty = prev[item.id]?.quantity || 0;
-                    if (currentQty <= 1) {
-                        const newCart = { ...prev };
-                        delete newCart[item.id];
-                        return newCart;
-                    }
-                    return { ...prev, [item.id]: { ...item, quantity: currentQty - 1 } };
+                    const qty = prev[item.id]?.quantity || 0;
+                    if (qty <= 1) { const n = { ...prev }; delete n[item.id]; return n; }
+                    return { ...prev, [item.id]: { ...item, quantity: qty - 1 } };
                 });
-                if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+                window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('light');
             };
 
             const getFilteredItems = () => {
-                if (searchQuery) {
-                    return Object.values(MENU_DATA).flatMap(cat => cat.items)
-                        .filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
-                }
-                return MENU_DATA[activeCategory].items;
+                if (searchQuery) return Object.values(MENU_DATA).flatMap(c => c.items).filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
+                return MENU_DATA[activeCategory]?.items || [];
             };
 
             const theme = {
@@ -295,59 +131,62 @@
                 secondaryBg: 'var(--tg-theme-secondary-bg-color)',
                 text: 'var(--tg-theme-text-color)',
                 button: 'var(--tg-theme-button-color)',
-                buttonText: 'var(--tg-theme-button-text-color)',
-                hint: 'var(--tg-theme-hint-color, #999999)'
+                buttonText: 'var(--tg-theme-button-text-color)'
             };
 
             return (
-                <div className="min-h-screen pb-24 font-sans select-none transition-colors duration-200" style={{ backgroundColor: theme.bg }}>
+                <div className="min-h-screen pb-24 font-sans select-none" style={{ backgroundColor: theme.bg }}>
                     
-                    {/* Header */}
-                    <div className="sticky top-0 z-50 backdrop-blur-xl bg-opacity-90 border-b border-black/5" 
-                         style={{ backgroundColor: theme.secondaryBg }}>
-                        <div className="px-4 py-3 flex items-center justify-between">
+                    {/* Header: Sticky */}
+                    <div className="sticky top-0 z-50 backdrop-blur-xl bg-opacity-95 border-b border-black/5" style={{ backgroundColor: theme.secondaryBg }}>
+                        
+                        {/* Top Row: Logo & Cart */}
+                        <div className="px-4 pt-3 pb-1 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white shadow-sm"
+                                <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white shadow-sm shadow-blue-500/20"
                                      style={{ backgroundColor: theme.button }}>Y</div>
                                 <h1 className="text-xl font-bold tracking-tight" style={{ color: theme.text }}>Yoshiko</h1>
                             </div>
-                            <div className="relative cursor-pointer tap-effect p-2 rounded-full hover:bg-black/5" onClick={() => setView(view === 'cart' ? 'menu' : 'cart')}>
+                            <div className="relative cursor-pointer tap-effect p-2" onClick={() => setView(view === 'cart' ? 'menu' : 'cart')}>
                                 {view === 'cart' ? <Icons.Close /> : <Icons.Cart />}
                                 {Object.keys(cart).length > 0 && view !== 'cart' && (
-                                    <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border border-white">
-                                        {Object.values(cart).reduce((a,b) => a + b.quantity, 0)}
-                                    </span>
+                                    <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center border border-white">{Object.values(cart).reduce((a,b) => a + b.quantity, 0)}</span>
                                 )}
                             </div>
                         </div>
+
+                        {/* --- ИНФОРМАЦИОННЫЙ БЛОК (НОВЫЙ) --- */}
+                        {view === 'menu' && (
+                            <div className="px-4 pb-3 animate-fade-in">
+                                <div className="flex flex-col gap-1 pl-1">
+                                    <a href="tel:+74993479141" className="text-[12px] font-semibold flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity" style={{ color: theme.text }}>
+                                        <Icons.Phone /> <span>+7 (499) 347 91 41</span>
+                                    </a>
+                                    <div className="text-[10px] flex items-center gap-1.5 opacity-50 font-medium" style={{ color: theme.text }}>
+                                        <Icons.Clock /> 
+                                        <span>Будни 10:30-00:00 <span className="mx-1 opacity-30">|</span> Вых 10:30-01:00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {/* ---------------------------------- */}
 
                         {view === 'menu' && (
                             <>
                                 <div className="px-4 pb-2">
                                     <div className="relative group">
-                                        <div className="absolute left-3 top-2.5 text-gray-400 group-focus-within:text-blue-500 transition-colors"><Icons.Search /></div>
-                                        <input 
-                                            type="text" 
-                                            placeholder="Поиск..." 
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-[15px] outline-none transition-all shadow-sm focus:shadow-md"
-                                            style={{ backgroundColor: theme.bg, color: theme.text }}
-                                        />
+                                        <div className="absolute left-3 top-2.5 text-gray-400"><Icons.Search /></div>
+                                        <input type="text" placeholder="Поиск блюд..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-[14px] outline-none shadow-sm transition-all focus:shadow-md" 
+                                            style={{ backgroundColor: theme.bg, color: theme.text }} />
                                     </div>
                                 </div>
                                 {!searchQuery && (
                                     <div className="flex overflow-x-auto hide-scrollbar px-4 pb-3 gap-2">
                                         {CATEGORIES.map(cat => (
-                                            <button
-                                                key={cat.id}
-                                                onClick={() => setActiveCategory(cat.id)}
-                                                className={`whitespace-nowrap px-4 py-2 rounded-full text-[14px] font-medium transition-all tap-effect ${activeCategory === cat.id ? 'shadow-md scale-[1.02]' : 'opacity-60 hover:opacity-100'}`}
-                                                style={{
-                                                    backgroundColor: activeCategory === cat.id ? theme.button : theme.bg,
-                                                    color: activeCategory === cat.id ? theme.buttonText : theme.text
-                                                }}
-                                            >
+                                            <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+                                                className={`whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-medium transition-all tap-effect ${activeCategory === cat.id ? 'shadow-md scale-[1.02]' : 'opacity-60'}`}
+                                                style={{ backgroundColor: activeCategory === cat.id ? theme.button : theme.bg, color: activeCategory === cat.id ? theme.buttonText : theme.text }}>
                                                 {cat.label}
                                             </button>
                                         ))}
@@ -357,38 +196,25 @@
                         )}
                     </div>
 
-                    {/* Content */}
+                    {/* Main Content */}
                     <div className="p-4 animate-fade-in">
                         {view === 'menu' ? (
                             <div className="grid grid-cols-2 gap-3">
-                                {searchQuery && <h2 className="text-lg font-bold mb-2 col-span-full" style={{ color: theme.text }}>Результаты:</h2>}
+                                {searchQuery && <h2 className="col-span-full font-bold mb-2">Результаты поиска:</h2>}
                                 {getFilteredItems().map(item => (
-                                    <div key={item.id} 
-                                         className="flex flex-col rounded-[20px] overflow-hidden shadow-sm border border-black/5 relative tap-effect h-full"
-                                         style={{ backgroundColor: theme.secondaryBg }}>
-                                        
-                                        {/* Image Area */}
-                                        <div className="w-full aspect-[4/3] relative bg-gray-100 overflow-hidden">
-                                            <img 
-                                                src={item.image || getPlaceholder(searchQuery ? Object.keys(MENU_DATA).find(k => MENU_DATA[k].items.includes(item)) : activeCategory, item.name)} 
-                                                alt={item.name}
-                                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                                                loading="lazy"
-                                            />
-                                            {item.count && <span className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] px-2 py-0.5 rounded-md">{item.count}</span>}
-                                            {item.weight && <span className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-md text-black text-[10px] px-2 py-0.5 rounded-md shadow-sm">{item.weight}</span>}
+                                    <div key={item.id} className="flex flex-col rounded-[20px] overflow-hidden shadow-sm border border-black/5 relative tap-effect h-full" style={{ backgroundColor: theme.secondaryBg }}>
+                                        <div className="w-full aspect-[4/3] relative bg-gray-100 overflow-hidden group">
+                                            <img src={item.image || getPlaceholder(activeCategory, item.name)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                                            {item.count && <span className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] px-2 py-0.5 rounded-md font-medium">{item.count}</span>}
+                                            {item.weight && <span className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-md text-black text-[10px] px-2 py-0.5 rounded-md shadow-sm font-medium">{item.weight}</span>}
                                         </div>
-
-                                        {/* Info Area */}
                                         <div className="p-3 flex flex-col flex-1 justify-between">
                                             <div>
-                                                <h3 className="font-bold text-[14px] leading-[1.2] mb-1 line-clamp-2" style={{ color: theme.text }}>{item.name}</h3>
+                                                <h3 className="font-bold text-[13px] leading-[1.3] mb-1 line-clamp-2" style={{ color: theme.text }}>{item.name}</h3>
                                                 <p className="text-[11px] leading-[1.3] line-clamp-2 mb-3 opacity-60" style={{ color: theme.text }}>{item.description}</p>
                                             </div>
-                                            
                                             <div className="flex items-center justify-between mt-auto">
                                                 <span className="font-bold text-[15px]" style={{ color: theme.text }}>{item.price} ₽</span>
-                                                
                                                 {cart[item.id] ? (
                                                     <div className="flex items-center rounded-full bg-gray-100 dark:bg-white/10 h-8">
                                                         <button onClick={() => handleRemoveFromCart(item)} className="w-8 h-8 flex items-center justify-center tap-effect"><Icons.Minus /></button>
@@ -396,11 +222,7 @@
                                                         <button onClick={() => handleAddToCart(item)} className="w-8 h-8 flex items-center justify-center tap-effect"><Icons.Plus /></button>
                                                     </div>
                                                 ) : (
-                                                    <button onClick={() => handleAddToCart(item)}
-                                                            className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm tap-effect transition-colors"
-                                                            style={{ backgroundColor: theme.button, color: theme.buttonText }}>
-                                                        <Icons.Plus />
-                                                    </button>
+                                                    <button onClick={() => handleAddToCart(item)} className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm tap-effect transition-colors" style={{ backgroundColor: theme.button, color: theme.buttonText }}><Icons.Plus /></button>
                                                 )}
                                             </div>
                                         </div>
@@ -408,47 +230,33 @@
                                 ))}
                             </div>
                         ) : (
-                            // Cart View
-                            <div className="space-y-4">
+                            <div className="space-y-4 animate-fade-in">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-2xl font-bold" style={{ color: theme.text }}>Корзина</h2>
                                     <button onClick={() => setCart({})} className="text-red-500 text-[14px] font-medium opacity-80 hover:opacity-100">Очистить</button>
                                 </div>
-                                {Object.keys(cart).length === 0 ? (
-                                    <div className="text-center py-20 opacity-40">
-                                        <div className="flex justify-center mb-4 text-6xl">🛒</div>
-                                        <p className="text-lg font-medium" style={{ color: theme.text }}>Пусто</p>
-                                        <button onClick={() => setView('menu')} className="mt-4 font-medium text-blue-500">Перейти в меню</button>
-                                    </div>
-                                ) : (
+                                {Object.keys(cart).length === 0 ? <div className="text-center py-20 opacity-40"><div className="text-6xl mb-4">🛒</div><p>Корзина пуста</p><button onClick={() => setView('menu')} className="mt-4 text-blue-500 font-medium">Перейти в меню</button></div> : 
                                     Object.values(cart).map(item => (
-                                        <div key={item.id} className="flex items-center gap-4 py-3 border-b border-black/5 last:border-0 animate-fade-in-up">
-                                            {/* Mini Image in Cart */}
-                                            <div className="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
-                                                <img 
-                                                     src={item.image || getPlaceholder('cart', item.name)} 
-                                                     className="w-full h-full object-cover"
-                                                />
-                                            </div>
+                                        <div key={item.id} className="flex items-center gap-4 py-3 border-b border-black/5 last:border-0">
+                                            <div className="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden shrink-0"><img src={item.image || getPlaceholder('cart', item.name)} className="w-full h-full object-cover" /></div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="font-medium truncate text-[15px]" style={{ color: theme.text }}>{item.name}</div>
+                                                <div className="font-medium truncate text-[14px]" style={{ color: theme.text }}>{item.name}</div>
                                                 <div className="text-[13px] opacity-60" style={{ color: theme.text }}>{item.price} ₽</div>
                                             </div>
                                             <div className="flex items-center gap-3 rounded-lg px-2 py-1" style={{ backgroundColor: theme.bg }}>
-                                                <button onClick={() => handleRemoveFromCart(item)} className="p-1 tap-effect opacity-60 hover:opacity-100"><Icons.Minus /></button>
+                                                <button onClick={() => handleRemoveFromCart(item)} className="p-1 opacity-60"><Icons.Minus /></button>
                                                 <span className="font-medium w-4 text-center text-[14px]" style={{ color: theme.text }}>{item.quantity}</span>
-                                                <button onClick={() => handleAddToCart(item)} className="p-1 tap-effect opacity-60 hover:opacity-100"><Icons.Plus /></button>
+                                                <button onClick={() => handleAddToCart(item)} className="p-1 opacity-60"><Icons.Plus /></button>
                                             </div>
                                         </div>
                                     ))
-                                )}
+                                }
                             </div>
                         )}
                     </div>
                 </div>
             );
         };
-
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
