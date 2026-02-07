@@ -5,10 +5,10 @@ window.MENU_JAPAN = {
     sets: {
         title: "Сеты",
         items: [
-            { id: 'set-newyork', name: 'Сет Нью-Йорк', weight: '1320 гр', count: '48 шт', price: 2400, description: 'Роллы: Каприз, Шеф, Дунай, Жемчужина, Саппоро, Майами', image: '' },
-            { id: 'set-fuji', name: 'Сет Фуджи', weight: '900 гр', count: '32 шт', price: 1350, description: 'Роллы: Йоджи маки, Белоснежка, Чикаго, Ролл с креветкой', image: '' },
-            { id: 'set-oslo', name: 'Сет Осло', weight: '1740 гр', count: '56 шт', price: 3100, description: 'Черный самурай, Спай эби, Шик маки, Золотой, Сой бин маки', image: '' },
-            { id: 'set-furshet', name: 'Сет Фуршет', weight: '2200 гр', count: '80 шт', price: 4100, description: 'Шанхай, Корона, Белоснежка, Калифорния с кунжутом, Де люкс, Аляска', image: '' },
+            { id: 'set-newyork', name: 'Сет Нью-Йорк', weight: '1320 гр', count: '48 шт', price: 2400, description: 'Роллы: Каприз, Шеф, Дунай, Жемчужина, Саппоро, Майами', image: 'https://yoshiko.su/image/cache/catalog/products/Assorti/Sety_New_York-272x272.jpg' },
+            { id: 'set-fuji', name: 'Сет Фуджи', weight: '900 гр', count: '32 шт', price: 1350, description: 'Роллы: Йоджи маки, Белоснежка, Чикаго, Ролл с креветкой', image: 'yoshiko.su/image/cache/catalog/products/Assorti/Set_fudzhi-272x272.jpg' },
+            { id: 'set-oslo', name: 'Сет Осло', weight: '1740 гр', count: '56 шт', price: 3100, description: 'Черный самурай, Спай эби, Шик маки, Золотой, Сой бин маки', image: 'http://yoshiko.su/image/cache/catalog/products/Assorti/Set_oslo-272x272.jpg' },
+            { id: 'set-furshet', name: 'Сет Фуршет', weight: '2200 гр', count: '80 шт', price: 4100, description: 'Шанхай, Корона, Белоснежка, Калифорния с кунжутом, Де люкс, Аляска', image: 'https://yoshiko.su/image/cache/catalog/products/Assorti/Furshet-272x272.jpg' },
             { id: 'set-vip', name: 'Сет ВИП', weight: '850 гр', count: '27 шт', price: 1790, description: 'Роллы: Мадрид, Тар-тар маки, Бангкок. Суши: Угорь, Лосось', image: '' },
             { id: 'set-texas', name: 'Сет Техас', weight: '1300 гр', count: '40 шт', price: 2050, description: 'Темпура: маки, императорский. Роллы: сидней, кайсен, черный самурай', image: '' },
             { id: 'set-nagano', name: 'Сет Нагано', weight: '1000 гр', count: '32 шт', price: 1700, description: 'Сет для минималистов с аппетитом. Четыре ролла', image: '' },
@@ -56,4 +56,5 @@ window.MENU_JAPAN = {
             { id: 'sushi-squid', name: 'Суши с кальмаром', price: 120, description: 'Кальмар, рис', image: '' }
         ]
     }
+
 };
